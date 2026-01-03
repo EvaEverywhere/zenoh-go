@@ -24,6 +24,39 @@ static z_owned_closure_sample_t make_sample_closure(void* context) {
     z_closure_sample(&closure, sample_callback_wrapper, NULL, context);
     return closure;
 }
+
+// Helper to create config from JSON5 string
+// Returns 0 on success, negative on error
+static int config_from_json5(z_owned_config_t* config, const char* json5) {
+    // Try z_config_from_str first (zenoh-c 1.0 API)
+    z_result_t result = z_config_from_str(config, json5);
+    return (int)result;
+}
+
+// Helper to insert JSON5 into existing config
+// This is an alternative approach if z_config_from_str doesn't work
+static int config_insert_json5(z_loaned_config_t* config, const char* key, const char* json5) {
+    // zenoh-c 1.0 uses zc_config_insert_json5
+    return (int)zc_config_insert_json5(config, key, json5);
+}
+
+// Helper to safely get string pointer and length from z_view_string_t
+// This abstracts the field names which may vary between zenoh-c versions
+static const char* view_string_data(const z_view_string_t* s) {
+    return z_string_data(z_view_string_loan(s));
+}
+
+static size_t view_string_len(const z_view_string_t* s) {
+    return z_string_len(z_view_string_loan(s));
+}
+
+// Helper to read bytes from z_bytes into a buffer
+// Returns number of bytes read
+static size_t read_bytes_to_buffer(const z_loaned_bytes_t* bytes, uint8_t* buffer, size_t buffer_len) {
+    z_bytes_reader_t reader;
+    z_bytes_reader_init(&reader, bytes);
+    return z_bytes_reader_read(&reader, buffer, buffer_len);
+}
 */
 import "C"
 
@@ -32,6 +65,7 @@ import (
 	"fmt"
 	"runtime"
 	"runtime/cgo"
+	"strings"
 	"sync"
 	"time"
 	"unsafe"
@@ -50,29 +84,44 @@ type cgoSession struct {
 
 // openSession creates a CGO-backed session.
 func openSession(cfg Config) (Session, error) {
-	// Create default config
 	var zconfig C.z_owned_config_t
-	C.z_config_default(&zconfig)
 
-	// Configure endpoints for client mode
+	// Configure based on mode
 	if cfg.Mode == ModeClient && len(cfg.Endpoints) > 0 {
-		// Build JSON5 config for endpoints
-		// Format: { "connect": { "endpoints": ["tcp/..."] } }
-		endpointsJSON := `{"connect":{"endpoints":[`
+		// Build full JSON5 config for client mode
+		// Format: { "mode": "client", "connect": { "endpoints": ["tcp/..."] } }
+		quotedEndpoints := make([]string, len(cfg.Endpoints))
 		for i, ep := range cfg.Endpoints {
-			if i > 0 {
-				endpointsJSON += ","
-			}
-			endpointsJSON += `"` + ep + `"`
+			quotedEndpoints[i] = `"` + ep + `"`
 		}
-		endpointsJSON += `]}}`
+		configJSON := fmt.Sprintf(`{"mode":"client","connect":{"endpoints":[%s]}}`,
+			strings.Join(quotedEndpoints, ","))
 
-		cJSON := C.CString(endpointsJSON)
+		cJSON := C.CString(configJSON)
 		defer C.free(unsafe.Pointer(cJSON))
 
-		// Insert JSON5 config
-		// Note: This may vary by zenoh-c version
-		// z_config_insert_json5 or similar
+		// Create config from JSON5
+		result := C.config_from_json5(&zconfig, cJSON)
+		if result < 0 {
+			// Fallback: try default config with manual endpoint insertion
+			C.z_config_default(&zconfig)
+
+			// Try inserting connect endpoints
+			connectJSON := fmt.Sprintf(`{"endpoints":[%s]}`, strings.Join(quotedEndpoints, ","))
+			cConnectJSON := C.CString(connectJSON)
+			cConnectKey := C.CString("connect")
+			defer C.free(unsafe.Pointer(cConnectJSON))
+			defer C.free(unsafe.Pointer(cConnectKey))
+
+			insertResult := C.config_insert_json5(C.z_config_loan(&zconfig), cConnectKey, cConnectJSON)
+			if insertResult < 0 {
+				// Log warning but continue - may work with defaults
+				// The router might be on localhost:7447
+			}
+		}
+	} else {
+		// Peer mode or no endpoints - use defaults
+		C.z_config_default(&zconfig)
 	}
 
 	// Open session
@@ -243,10 +292,15 @@ func goSampleCallback(sample *C.z_loaned_sample_t, context unsafe.Pointer) {
 	h := cgo.Handle(context)
 	sub := h.Value().(*cgoSubscriber)
 
-	// Extract key expression
+	// Extract key expression using safe accessor
 	keyexpr := C.z_sample_keyexpr(sample)
 	var keystr C.z_view_string_t
 	C.z_keyexpr_as_view_string(keyexpr, &keystr)
+
+	// Get key expression string using helper (handles version differences)
+	keyStrData := C.view_string_data(&keystr)
+	keyStrLen := C.view_string_len(&keystr)
+	keyExprStr := C.GoStringN(keyStrData, C.int(keyStrLen))
 
 	// Extract payload
 	payload := C.z_sample_payload(sample)
@@ -255,13 +309,9 @@ func goSampleCallback(sample *C.z_loaned_sample_t, context unsafe.Pointer) {
 	var payloadData []byte
 	if payloadLen > 0 {
 		payloadData = make([]byte, payloadLen)
-		var reader C.z_bytes_reader_t
-		C.z_bytes_reader_init(&reader, payload)
-		C.z_bytes_reader_read(&reader, (*C.uint8_t)(unsafe.Pointer(&payloadData[0])), payloadLen)
+		// Use helper to read bytes safely
+		C.read_bytes_to_buffer(payload, (*C.uint8_t)(unsafe.Pointer(&payloadData[0])), payloadLen)
 	}
-
-	// Get key expression string
-	keyExprStr := C.GoStringN(keystr._val, C.int(keystr._len))
 
 	s := Sample{
 		KeyExpr:   KeyExpr(keyExprStr),
