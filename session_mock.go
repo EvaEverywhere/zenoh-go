@@ -176,3 +176,7 @@ func matchParts(pattern, subject []string) bool {
 	return pi == len(pattern) && si == len(subject)
 }
 
+
+
+
+
