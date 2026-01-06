@@ -3,18 +3,18 @@
 package zenoh
 
 /*
-#cgo CFLAGS: -I/usr/local/include -I/usr/include
-#cgo LDFLAGS: -L/usr/local/lib -L/usr/lib -lzenohc
+#cgo CFLAGS: -I/opt/homebrew/include -I/usr/local/include -I/usr/include
+#cgo LDFLAGS: -L/opt/homebrew/lib -L/usr/local/lib -L/usr/lib -lzenohc
 
 #include <zenoh.h>
 #include <stdlib.h>
 #include <string.h>
 
-// Forward declaration for Go callback
-extern void goSampleCallback(const z_loaned_sample_t*, void*);
+// Forward declaration for Go callback (signature must match exactly)
+extern void goSampleCallback(struct z_loaned_sample_t*, void*);
 
 // Callback wrapper that C can call
-static void sample_callback_wrapper(z_loaned_sample_t* sample, void* context) {
+static void sample_callback_wrapper(struct z_loaned_sample_t* sample, void* context) {
     goSampleCallback(sample, context);
 }
 
@@ -28,8 +28,8 @@ static z_owned_closure_sample_t make_sample_closure(void* context) {
 // Helper to create config from JSON5 string
 // Returns 0 on success, negative on error
 static int config_from_json5(z_owned_config_t* config, const char* json5) {
-    // Try z_config_from_str first (zenoh-c 1.0 API)
-    z_result_t result = z_config_from_str(config, json5);
+    // zenoh-c 1.x uses zc_config_from_str
+    z_result_t result = zc_config_from_str(config, json5);
     return (int)result;
 }
 
@@ -53,8 +53,8 @@ static size_t view_string_len(const z_view_string_t* s) {
 // Helper to read bytes from z_bytes into a buffer
 // Returns number of bytes read
 static size_t read_bytes_to_buffer(const z_loaned_bytes_t* bytes, uint8_t* buffer, size_t buffer_len) {
-    z_bytes_reader_t reader;
-    z_bytes_reader_init(&reader, bytes);
+    // zenoh-c 1.x: z_bytes_get_reader returns reader value
+    z_bytes_reader_t reader = z_bytes_get_reader(bytes);
     return z_bytes_reader_read(&reader, buffer, buffer_len);
 }
 */
