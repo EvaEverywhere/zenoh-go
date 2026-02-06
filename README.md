@@ -3,7 +3,7 @@
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://go.dev)
 [![Zenoh Version](https://img.shields.io/badge/zenoh--c-1.0.0-blue)](https://github.com/eclipse-zenoh/zenoh-c)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
-[![Alpha](https://img.shields.io/badge/status-alpha-orange)](https://github.com/teslashibe/zenoh-go/releases)
+[![Alpha](https://img.shields.io/badge/status-alpha-orange)](https://github.com/evaeverywhere/zenoh-go/releases)
 
 Go bindings for [Eclipse Zenoh](https://zenoh.io/) — a pub/sub/query protocol designed for robotics and IoT.
 
@@ -35,7 +35,7 @@ With `zenoh-go`, you get direct access to Zenoh's pub/sub from Go — enabling s
 ## Installation
 
 ```bash
-go get github.com/teslashibe/zenoh-go@v0.1.0-alpha
+go get github.com/evaeverywhere/zenoh-go@v0.1.0-alpha
 ```
 
 ### Prerequisites
@@ -69,7 +69,7 @@ package main
 
 import (
     "log"
-    zenoh "github.com/teslashibe/zenoh-go"
+    zenoh "github.com/evaeverywhere/zenoh-go"
 )
 
 func main() {
@@ -102,7 +102,7 @@ package main
 
 import (
     "log"
-    zenoh "github.com/teslashibe/zenoh-go"
+    zenoh "github.com/evaeverywhere/zenoh-go"
 )
 
 func main() {
@@ -192,7 +192,7 @@ CGO_ENABLED=1 go test ./...
 
 ```bash
 # Clone the repository
-git clone https://github.com/teslashibe/zenoh-go.git
+git clone https://github.com/evaeverywhere/zenoh-go.git
 cd zenoh-go
 
 # Test with mock implementation

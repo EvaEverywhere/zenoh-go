@@ -12,7 +12,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	zenoh "github.com/teslashibe/zenoh-go"
+	zenoh "github.com/evaeverywhere/zenoh-go"
 )
 
 func main() {

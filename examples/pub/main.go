@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	zenoh "github.com/teslashibe/zenoh-go"
+	zenoh "github.com/evaeverywhere/zenoh-go"
 )
 
 func main() {
