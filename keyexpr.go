@@ -61,4 +61,3 @@ func matchParts(pattern, subject []string) bool {
 	// Check if both exhausted
 	return pi == len(pattern) && si == len(subject)
 }
-

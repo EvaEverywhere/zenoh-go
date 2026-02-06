@@ -233,3 +233,4 @@ Apache 2.0 — see [LICENSE](LICENSE) for details.
 
 - [Eclipse Zenoh](https://zenoh.io/) — The underlying pub/sub protocol
 - [Pollen Robotics](https://www.pollen-robotics.com/) — Reachy Mini robot that inspired this project
+

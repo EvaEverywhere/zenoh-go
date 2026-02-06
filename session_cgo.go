@@ -323,4 +323,3 @@ func goSampleCallback(sample *C.z_loaned_sample_t, context unsafe.Pointer) {
 	// Call handler (in current goroutine - Zenoh manages threading)
 	sub.handler(s)
 }
-

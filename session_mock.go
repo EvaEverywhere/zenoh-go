@@ -117,10 +117,3 @@ func (s *mockSession) publish(keyExpr KeyExpr, data []byte, kind SampleKind) {
 
 // matchKeyExpr and matchParts are defined in keyexpr.go
 
-
-
-
-
-
-
-
