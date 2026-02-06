@@ -1,4 +1,4 @@
-module github.com/EvaEverywhere/zenoh-go
+module github.com/evaeverywhere/zenoh-go
 
 go 1.25
 
