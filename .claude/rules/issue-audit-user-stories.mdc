@@ -1,0 +1,40 @@
+---
+description: Forensic audit against issue with user stories and ACs
+alwaysApply: false
+---
+
+# Issue Audit + Stories
+
+Use this rule when the user asks for a forensic audit against an issue, PR, or spec.
+
+## Audit Procedure
+
+1. Confirm the intended behavior from the issue/spec text.
+2. Compare intended behavior to current implementation.
+3. Identify gaps: bugs, regressions, missing tests, edge cases, and observability holes.
+4. Prioritize findings by severity (high, medium, low) with concrete file references.
+5. State assumptions and unknowns explicitly.
+
+## Required Output Order
+
+1. Findings (severity-ordered, evidence first)
+2. Gaps vs issue intent
+3. User stories
+4. Acceptance criteria
+5. Risks and follow-up actions
+
+## User Story Format
+
+- As a `<persona>`, I want `<capability>`, so that `<outcome>`.
+
+## Acceptance Criteria Format
+
+- Use testable bullets, preferably Given/When/Then.
+- Include success and failure paths.
+- Include at least one negative-case AC when relevant.
+
+## Quality Bar
+
+- Do not stop at summaries; findings must come first.
+- If no findings exist, explicitly state "No findings" and list residual risks.
+- Keep recommendations actionable and tied to specific code paths.
